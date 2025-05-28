@@ -24,6 +24,7 @@ from langchain.retrievers import EnsembleRetriever
 import utils
 import constants as ct
 
+from langchain_community.vectorstores import FAISS  # 変更
 
 # # sqliteの切替は .env の値を見て分岐
 # if os.getenv("USE_PYSQLITE3", "false").lower() == "true":
@@ -99,68 +100,29 @@ def initialize_session_state():
         st.session_state.messages = []
 
 
-# def initialize_retriever():
-#     """
-#     Retrieverを作成
-#     """
-#     logger = logging.getLogger(ct.LOGGER_NAME)
-
-#     if "retriever" in st.session_state:
-#         return
-    
-#     loader = CSVLoader(ct.RAG_SOURCE_PATH, encoding="utf-8")
-#     docs = loader.load()
-
-#     # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
-#     for doc in docs:
-#         doc.page_content = adjust_string(doc.page_content)
-#         for key in doc.metadata:
-#             doc.metadata[key] = adjust_string(doc.metadata[key])
-
-#     docs_all = []
-#     for doc in docs:
-#         docs_all.append(doc.page_content)
-
-#     embeddings = OpenAIEmbeddings()
-#     db = Chroma.from_documents(docs, embedding=embeddings)
-
-#     retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
-
-#     bm25_retriever = BM25Retriever.from_texts(
-#         docs_all,
-#         preprocess_func=utils.preprocess_func,
-#         k=ct.TOP_K
-#     )
-#     ensemble_retriever = EnsembleRetriever(
-#         retrievers=[bm25_retriever, retriever],
-#         weights=ct.RETRIEVER_WEIGHTS
-#     )
-
-#     st.session_state.retriever = ensemble_retriever
-
-
-
-from langchain_community.vectorstores import FAISS  # 変更
-
 def initialize_retriever():
+    """
+    Retrieverを作成
+    """
     logger = logging.getLogger(ct.LOGGER_NAME)
 
     if "retriever" in st.session_state:
         return
-
+    
     loader = CSVLoader(ct.RAG_SOURCE_PATH, encoding="utf-8")
     docs = loader.load()
 
+    # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
     for doc in docs:
         doc.page_content = adjust_string(doc.page_content)
         for key in doc.metadata:
             doc.metadata[key] = adjust_string(doc.metadata[key])
 
-    docs_all = [doc.page_content for doc in docs]
+    docs_all = []
+    for doc in docs:
+        docs_all.append(doc.page_content)
 
     embeddings = OpenAIEmbeddings()
-
-    # ✅ FAISS を使用
     db = FAISS.from_documents(docs, embedding=embeddings)
 
     retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
@@ -170,15 +132,12 @@ def initialize_retriever():
         preprocess_func=utils.preprocess_func,
         k=ct.TOP_K
     )
-
     ensemble_retriever = EnsembleRetriever(
         retrievers=[bm25_retriever, retriever],
         weights=ct.RETRIEVER_WEIGHTS
     )
 
     st.session_state.retriever = ensemble_retriever
-
-
 
 
 def adjust_string(s):
