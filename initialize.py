@@ -67,7 +67,9 @@ def initialize_logger():
         encoding="utf8"
     )
     formatter = logging.Formatter(
-        f"[%(levelname)s] %(asctime)s line %(lineno)s, in %(funcName)s, session_id={st.session_state.session_id}: %(message)s"
+        f"""[%(levelname)s] %(asctime)s line %(lineno)s, 
+    in %(funcName)s, 
+    session_id={st.session_state.session_id}: %(message)s"""
     )
     log_handler.setFormatter(formatter)
     logger.setLevel(logging.INFO)

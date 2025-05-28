@@ -41,10 +41,16 @@ def display_conversation_log():
     """
     for message in st.session_state.messages:
         if message["role"] == "user":
-            with st.chat_message("user", avatar=ct.USER_ICON_FILE_PATH):
+            with st.chat_message(
+                "user", 
+                avatar=ct.USER_ICON_FILE_PATH
+                ):
                 st.markdown(message["content"])
         else:
-            with st.chat_message("assistant", avatar=ct.AI_ICON_FILE_PATH):
+            with st.chat_message(
+                "assistant", 
+                avatar=ct.AI_ICON_FILE_PATH
+                ):
                 display_product(message["content"])
 
 
@@ -57,9 +63,18 @@ def display_product(result):
     """
     logger = logging.getLogger(ct.LOGGER_NAME)
 
+    print("====================================")
+    print("result[1]の中身", result[1])
+
     # LLMレスポンスのテキストを辞書に変換
     product_lines = result[0].page_content.split("\n")
-    product = {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+    print("====================================")
+    print("product_linesの中身", product_lines)
+    product = (
+        {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+        )
+    print("====================================")
+    print("productの中身", product)
 
     st.markdown("以下の商品をご提案いたします。")
 
@@ -68,6 +83,28 @@ def display_product(result):
             商品名：{product['name']}（商品ID: {product['id']}）\n
             価格：{product['price']}
     """)
+
+    ##########################################################
+    # stock_statusを追加
+    stock_status = product.get("stock_status", None)
+    print("====================================")
+    print("stock_statusの中身", stock_status)
+
+    if stock_status:
+        if stock_status == "あり":
+            stock_msg = "在庫あり"
+            st.info(f"{stock_msg}")
+        elif stock_status == "残りわずか":
+            stock_msg = "ご好評につき、在庫数が残りわずかです。購入をご希望の場合、お早めのご注文をおすすめいたします。"
+            st.warning(f"{ct.WARNING_ICON} {stock_msg}")
+        elif stock_status == "なし":
+            stock_msg = "申し訳ございませんが、本商品は在庫切れとなっております。入荷までもうしばらくお待ち下さい。"
+            st.error(f"{ct.ERROR_ICON} {stock_msg}")
+    else:
+        logger.warning("在庫状況が商品情報に含まれていません。")
+        stock_msg = "在庫状況が商品情報に含まれていません。"
+        st.error(f"{ct.ERROR_ICON} {stock_msg}")
+    ##########################################################
 
     # 「商品カテゴリ」と「メーカー」と「ユーザー評価」
     st.code(f"""
@@ -87,4 +124,9 @@ def display_product(result):
     st.info(product["recommended_people"])
 
     # 商品ページのリンク
-    st.link_button("商品ページを開く", type="primary", use_container_width=True, url="https://google.com")
+    st.link_button(
+        "商品ページを開く", 
+        type="primary", 
+        use_container_width=True, 
+        url="https://google.com"
+        )

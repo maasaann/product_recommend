@@ -59,7 +59,9 @@ try:
     cn.display_conversation_log()
 except Exception as e:
     logger.error(f"{ct.CONVERSATION_LOG_ERROR_MESSAGE}\n{e}")
-    st.error(utils.build_error_message(ct.CONVERSATION_LOG_ERROR_MESSAGE))
+    st.error(utils.build_error_message(
+        ct.CONVERSATION_LOG_ERROR_MESSAGE
+        ))
     st.stop()
 
 
@@ -67,7 +69,8 @@ except Exception as e:
 # チャット入力の受け付け
 ############################################################
 chat_message = st.chat_input(ct.CHAT_INPUT_HELPER_TEXT)
-
+print("====================================")
+print("chat_messageの中身", chat_message)
 
 ############################################################
 # チャット送信時の処理
@@ -88,26 +91,43 @@ if chat_message:
     with st.spinner(ct.SPINNER_TEXT):
         try:
             result = st.session_state.retriever.invoke(chat_message)
+            print("====================================")
+            print("resultの中身", result)
         except Exception as e:
             logger.error(f"{ct.RECOMMEND_ERROR_MESSAGE}\n{e}")
-            st.error(utils.build_error_message(ct.RECOMMEND_ERROR_MESSAGE))
+            st.error(utils.build_error_message(
+                ct.RECOMMEND_ERROR_MESSAGE
+                ))
             st.stop()
     
     # ==========================================
     # 3. LLMからの回答表示
     # ==========================================
-    with st.chat_message("assistant", avatar=ct.AI_ICON_FILE_PATH):
+    with st.chat_message(
+        "assistant", 
+        avatar=ct.AI_ICON_FILE_PATH
+        ):
         try:
             cn.display_product(result)
             
             logger.info({"message": result})
         except Exception as e:
-            logger.error(f"{ct.LLM_RESPONSE_DISP_ERROR_MESSAGE}\n{e}")
-            st.error(utils.build_error_message(ct.LLM_RESPONSE_DISP_ERROR_MESSAGE))
+            logger.error(
+                f"{ct.LLM_RESPONSE_DISP_ERROR_MESSAGE}\n{e}"
+                )
+            st.error(utils.build_error_message(
+                ct.LLM_RESPONSE_DISP_ERROR_MESSAGE
+                ))
             st.stop()
 
     # ==========================================
     # 4. 会話ログへの追加
     # ==========================================
-    st.session_state.messages.append({"role": "user", "content": chat_message})
-    st.session_state.messages.append({"role": "assistant", "content": result})
+    st.session_state.messages.append({
+        "role": "user", 
+        "content": chat_message
+        })
+    st.session_state.messages.append({
+        "role": "assistant", 
+        "content": result
+        })
