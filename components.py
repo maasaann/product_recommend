@@ -70,9 +70,14 @@ def display_product(result):
     product_lines = result[0].page_content.split("\n")
     print("====================================")
     print("product_linesの中身", product_lines)
-    product = (
-        {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
-        )
+    # BOMを安全に除去してから辞書化
+    product = {
+        item.split(": ")[0].lstrip("\ufeff").strip(): item.split(": ")[1].strip()
+        for item in product_lines
+    }
+    # product = (
+    #     {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+    #     )
     print("====================================")
     print("productの中身", product)
 
