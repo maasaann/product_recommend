@@ -1,9 +1,6 @@
 """
 このファイルは、最初の画面読み込み時にのみ実行される初期化処理が記述されたファイルです。
 """
-# import os
-# from dotenv import load_dotenv
-# load_dotenv()
 
 ############################################################
 # ライブラリの読み込み
@@ -24,16 +21,9 @@ from langchain.retrievers import EnsembleRetriever
 import utils
 import constants as ct
 
-from langchain_community.vectorstores import FAISS  # 変更
-
-# # sqliteの切替は .env の値を見て分岐
-# if os.getenv("USE_PYSQLITE3", "false").lower() == "true":
-#     import sys
-#     try:
-#         import pysqlite3
-#         sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-#     except ModuleNotFoundError:
-#         raise RuntimeError("USE_PYSQLITE3=true なのに 'pysqlite3' がインストールされていません。")
+# Chroma → FAISS へ変更するために追加
+# 約115行 db = Chroma.from_documents(docs, embedding=embeddings)
+from langchain_community.vectorstores import FAISS  
 
 
 ############################################################
