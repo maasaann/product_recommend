@@ -140,12 +140,9 @@ def initialize_session_state():
 
 
 
-from chromadb.config import Settings  # 追加
+from langchain_community.vectorstores import FAISS  # 変更
 
 def initialize_retriever():
-    """
-    Retrieverを作成
-    """
     logger = logging.getLogger(ct.LOGGER_NAME)
 
     if "retriever" in st.session_state:
@@ -159,24 +156,12 @@ def initialize_retriever():
         for key in doc.metadata:
             doc.metadata[key] = adjust_string(doc.metadata[key])
 
-    docs_all = []
-    for doc in docs:
-        docs_all.append(doc.page_content)
+    docs_all = [doc.page_content for doc in docs]
 
     embeddings = OpenAIEmbeddings()
 
-    # ✅ 安全な設定：/tmp を永続化ディレクトリに
-    chroma_settings = Settings(
-        chroma_db_impl="duckdb+parquet",
-        persist_directory="/tmp/chroma_db"
-    )
-
-    db = Chroma.from_documents(
-        docs,
-        embedding=embeddings,
-        persist_directory="/tmp/chroma_db",
-        client_settings=chroma_settings
-    )
+    # ✅ FAISS を使用
+    db = FAISS.from_documents(docs, embedding=embeddings)
 
     retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
 
